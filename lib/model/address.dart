@@ -1,4 +1,5 @@
 class Address {
+  String? id;
   String name;
   String address1;
   String? address2;
@@ -7,6 +8,7 @@ class Address {
   String country;
 
   Address({
+    this.id,
     required this.name,
     required this.address1,
     this.address2,
@@ -15,12 +17,14 @@ class Address {
     required this.country,
   });
 
-  Address fromJson(Map<String, dynamic> json) {
+  static Address fromJson(address) {
     return Address(
-        name: json['name'],
-        address1: json['address1'],
-        zipCode: json['zipCode'],
-        state: json['state'],
-        country: json['country']);
+        id: address['id'],
+        name: address['name'],
+        address1: address['address1'],
+        address2: address['address2'],
+        zipCode: address['zipCode'],
+        state: address['state'],
+        country: address['country']);
   }
 }

@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:address/model/address.dart';
 import 'package:address/widgets/address.dart';
+import 'package:address/screens/address_form.dart';
 
 class AddressScreen extends StatefulWidget {
   const AddressScreen({super.key});
@@ -15,36 +17,33 @@ class AddressScreen extends StatefulWidget {
 }
 
 class AddressScreenState extends State<AddressScreen> {
-  List<Address> _addressList = [];
+  final String baseUrl = dotenv.get('BASE_URL');
 
-  bool _loader = true;
+  List<Address> _addressList = [];
+  bool _isLoading = true;
 
   void _getaddresses() async {
-    Uri url = Uri.parse('http://10.0.2.2:3000/account/address/get-all');
+    Uri url = Uri.parse('$baseUrl/account/address/get-all');
 
     final response = await http.get(url);
 
-    final List<Map<String, dynamic>> listData =
-        json.decode(response.body).cast<Map<String, dynamic>>();
+    if (response.statusCode != 200) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
 
-    print(listData);
+    final listData = json.decode(response.body);
 
-    final List<Address> addressList = listData
-        .map((Map address) => Address(
-            name: address['name'],
-            address1: address['address_1'],
-            address2: address['address_2'],
-            zipCode: address['zip_code'],
-            state: address['state'],
-            country: address['country']))
+    final List<Address> addressList = (listData['result'] as Iterable)
+        .map((address) => Address.fromJson(address))
         .toList();
 
     setState(() {
-      _loader = false;
+      _isLoading = false;
       _addressList = addressList;
     });
-
-    print(_addressList);
   }
 
   @override
@@ -57,6 +56,23 @@ class AddressScreenState extends State<AddressScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    Widget content = const Center(child: Text('No address available'));
+
+    if (_isLoading) {
+      content = const Center(child: CircularProgressIndicator());
+    }
+
+    if (_addressList.isNotEmpty) {
+      content = Container(
+        padding: const EdgeInsets.only(top: 6),
+        child: ListView.builder(
+          itemCount: _addressList.length,
+          itemBuilder: (ctx, index) => AddressWidget(
+            _addressList[index],
+          ),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Addresses'),
@@ -64,30 +80,23 @@ class AddressScreenState extends State<AddressScreen> {
         backgroundColor: theme.colorScheme.primary,
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        backgroundColor: theme.colorScheme.primary,
+        shape: const CircleBorder(),
+        onPressed: () {
+          Navigator.of(context)
+              .push(MaterialPageRoute(
+            builder: (context) => const AddressForm(),
+          ))
+              .then((value) {
+            _getaddresses();
+          });
+        },
         child: const Icon(
           Icons.add,
           size: 36,
         ),
       ),
-      body: FutureBuilder(future : , builder: builder),
-      // body: Column(
-      //   children: [
-      //     if (_loader) const CircularProgressIndicator(),
-      //     if (_addressList.isEmpty)
-      //       const Center(
-      //         child: Text('No address added'),
-      //       ),
-      //     Expanded(
-      //       child: ListView.builder(
-      //         itemCount: _addressList.length,
-      //         itemBuilder: (ctx, index) => AddressWidget(
-      //           _addressList[index],
-      //         ),
-      //       ),
-      //     )
-      //   ],
-      // ),
+      body: content,
     );
   }
 }

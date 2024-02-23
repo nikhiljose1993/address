@@ -1,7 +1,9 @@
 import 'package:address/screens/addresses.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+Future main() async {
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
@@ -10,14 +12,24 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Address',
-      theme: ThemeData().copyWith(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xff00ADB5),
+    return GestureDetector(
+      onTap: () {
+        FocusScopeNode currentFocus = FocusScope.of(context);
+
+        if (!currentFocus.hasPrimaryFocus &&
+            currentFocus.focusedChild != null) {
+          currentFocus.focusedChild!.unfocus();
+        }
+      },
+      child: MaterialApp(
+        title: 'Address',
+        theme: ThemeData().copyWith(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xff00ADB5),
+          ),
         ),
+        home: const AddressScreen(),
       ),
-      home: const AddressScreen(),
     );
   }
 }
