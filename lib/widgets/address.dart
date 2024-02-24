@@ -48,7 +48,7 @@ class AddressWidget extends ConsumerWidget {
                       final String baseUrl = dotenv.get('BASE_URL');
 
                       final url = Uri.parse(
-                          '$baseUrl/account/address/delete/${address.id}');
+                          '$baseUrl/account/address/delete?id=${address.id}');
 
                       final response = await http.delete(url);
 
