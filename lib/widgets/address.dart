@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -48,15 +46,11 @@ class AddressWidget extends ConsumerWidget {
                   InkWell(
                     onTap: () async {
                       final String baseUrl = dotenv.get('BASE_URL');
-                      final url = Uri.parse('$baseUrl/account/address/delete');
 
-                      final response = await http.delete(
-                        url,
-                        headers: <String, String>{
-                          'Content-Type': 'application/json',
-                        },
-                        body: json.encode({'id': address.id}),
-                      );
+                      final url = Uri.parse(
+                          '$baseUrl/account/address/delete/${address.id}');
+
+                      final response = await http.delete(url);
 
                       if (response.statusCode == 200) {
                         ref.read(addressProvider.notifier).getaddresses();
